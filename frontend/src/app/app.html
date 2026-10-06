@@ -1,0 +1,704 @@
+<header class="top-navbar">
+
+  <div class="navbar-left">
+
+    <div class="brand">
+      <div class="brand-icon">
+        ▥
+      </div>
+
+      <span>PortfolioPro</span>
+    </div>
+
+    <nav class="nav-links">
+
+      <a class="active">Dashboard</a>
+      <a>Market</a>
+      <a>Portfolio</a>
+      <a>Transactions</a>
+      <a>Learning</a>
+
+    </nav>
+
+  </div>
+
+  <div class="navbar-right">
+
+    <div class="virtual-balance">
+      <small>Virtual Balance</small>
+
+      <strong>
+        ₹{{ portfolioSummary?.availableBalance || 0 | number:'1.2-2' }}
+      </strong>
+    </div>
+
+    <div class="user-profile">
+
+      <div class="avatar">
+        M
+      </div>
+
+      <span>Mukul</span>
+
+      <span class="dropdown-arrow">⌄</span>
+
+    </div>
+
+  </div>
+
+</header>
+
+
+<section class="welcome-section">
+
+  <div>
+
+    <span class="welcome-label">
+      WELCOME BACK
+    </span>
+
+    <h1>Mukul Kumar</h1>
+
+    <p>
+      Track, trade and learn with your virtual portfolio
+    </p>
+
+  </div>
+
+  <button class="new-trade-button">
+    <span>＋</span>
+    New Trade
+  </button>
+
+</section>
+
+
+<div class="container">
+
+
+  <!-- =========================
+       PORTFOLIO SUMMARY CARDS
+       ========================= -->
+
+  <div class="cards">
+
+    <!-- Total Portfolio -->
+    <div class="card">
+
+      <div class="card-header">
+        <span>Total Portfolio</span>
+        <span class="icon">₹</span>
+      </div>
+
+      @if (portfolioLoading) {
+        <h2>Loading...</h2>
+      } @else if (portfolioSummary) {
+        <h2>
+          ₹{{ portfolioSummary.totalPortfolio | number:'1.2-2' }}
+        </h2>
+      }
+
+      <p class="neutral">
+        Current portfolio value
+      </p>
+
+    </div>
+
+
+    <!-- Invested Amount -->
+    <div class="card">
+
+      <div class="card-header">
+        <span>Invested Amount</span>
+        <span class="icon">↗</span>
+      </div>
+
+      @if (portfolioLoading) {
+        <h2>Loading...</h2>
+      } @else if (portfolioSummary) {
+        <h2>
+          ₹{{ portfolioSummary.investedAmount | number:'1.2-2' }}
+        </h2>
+      }
+
+      <p class="neutral">
+        Total amount invested
+      </p>
+
+    </div>
+
+
+    <!-- Available Balance -->
+    <div class="card">
+
+      <div class="card-header">
+        <span>Available Balance</span>
+        <span class="icon">◉</span>
+      </div>
+
+      @if (portfolioLoading) {
+        <h2>Loading...</h2>
+      } @else if (portfolioSummary) {
+        <h2>
+          ₹{{ portfolioSummary.availableBalance | number:'1.2-2' }}
+        </h2>
+      }
+
+      <p class="neutral">
+        Virtual wallet balance
+      </p>
+
+    </div>
+
+
+    <!-- Today's P&L -->
+    <div class="card">
+
+      <div class="card-header">
+        <span>Today's P&L</span>
+        <span class="icon">↕</span>
+      </div>
+
+      @if (portfolioLoading) {
+        <h2>Loading...</h2>
+      } @else if (portfolioSummary) {
+
+        <h2
+          [class.positive]="portfolioSummary.todaysProfitLoss >= 0"
+          [class.negative]="portfolioSummary.todaysProfitLoss < 0">
+
+          ₹{{ portfolioSummary.todaysProfitLoss | number:'1.2-2' }}
+
+        </h2>
+
+      }
+
+      <p
+        [class.positive]="portfolioSummary && portfolioSummary.todaysProfitLoss >= 0"
+        [class.negative]="portfolioSummary && portfolioSummary.todaysProfitLoss < 0">
+
+        Based on today's simulated prices
+
+      </p>
+
+    </div>
+
+  </div>
+
+<div class="panel trading-panel">
+
+  <div class="panel-header">
+    <div>
+      <h2>Simulated Trading</h2>
+      <p>Buy or sell stocks using virtual balance</p>
+    </div>
+  </div>
+
+  <div class="trade-form">
+
+    <div class="form-group">
+      <label>Stock</label>
+
+      <select [(ngModel)]="selectedStockId">
+
+       @for (stock of stocks; track stock.id) {
+  <option [ngValue]="stock.id">
+    {{ stock.symbol }} — ₹{{ stock.currentPrice | number:'1.2-2' }}
+  </option>
+}
+
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Quantity</label>
+
+      <input
+        type="number"
+        min="1"
+        [(ngModel)]="orderQuantity">
+    </div>
+
+    <div class="trade-actions">
+
+  <button
+    class="buy-button"
+    (click)="buyStock()"
+    [disabled]="orderLoading !== null">
+
+    @if (orderLoading === 'buy') {
+      Processing...
+    } @else {
+      Buy
+    }
+
+  </button>
+
+
+  <button
+    class="sell-button"
+    (click)="sellStock()"
+    [disabled]="orderLoading !== null">
+
+    @if (orderLoading === 'sell') {
+      Processing...
+    } @else {
+      Sell
+    }
+
+  </button>
+
+</div>
+
+@if (orderMessage) {
+  <p class="order-success">
+    {{ orderMessage }}
+  </p>
+}
+
+@if (orderError) {
+  <p class="order-error">
+    {{ orderError }}
+  </p>
+}
+</div>
+<!-- =========================
+     MARKET + HOLDINGS
+     ========================= -->
+
+<div class="dashboard-two-column">
+
+  <!-- =========================
+       MARKET WATCHLIST
+       ========================= -->
+
+  <div class="panel">
+
+    <div class="panel-header">
+
+      <div>
+        <h2>Market Watchlist</h2>
+        <p>Simulated market data from MySQL</p>
+      </div>
+
+      <span class="view-all">Live Simulation</span>
+
+    </div>
+
+
+    @if (loading) {
+      <p class="neutral">Loading stocks...</p>
+    }
+
+    @if (errorMessage) {
+      <p class="negative">{{ errorMessage }}</p>
+    }
+
+
+    @for (stock of stocks; track stock.id) {
+
+      <div class="stock">
+
+        <div class="stock-info">
+
+          <div class="stock-logo">
+            {{ stock.symbol.charAt(0) }}
+          </div>
+
+          <div>
+            <strong>{{ stock.symbol }}</strong>
+            <small>{{ stock.companyName }}</small>
+          </div>
+
+        </div>
+
+
+        <div class="stock-price">
+
+          <strong>
+            ₹{{ stock.currentPrice | number:'1.2-2' }}
+          </strong>
+
+          <span
+            [class.positive]="stock.currentPrice >= stock.previousPrice"
+            [class.negative]="stock.currentPrice < stock.previousPrice">
+
+            {{ getPercentageChange(stock) | number:'1.2-2' }}%
+
+          </span>
+
+        </div>
+
+
+        <button
+          class="watchlist-button"
+          [disabled]="watchlistActionStockId !== null"
+          (click)="isInWatchlist(stock.id)
+            ? removeFromWatchlist(stock.id)
+            : addToWatchlist(stock.id)">
+
+          @if (isWatchlistProcessing(stock.id)) {
+
+            Processing...
+
+          } @else if (isInWatchlist(stock.id)) {
+
+            ★ Watching
+
+          } @else {
+
+            ☆ Watch
+
+          }
+
+        </button>
+
+      </div>
+
+    }
+
+
+    @if (watchlistMessage) {
+
+      <div class="watchlist-success">
+        {{ watchlistMessage }}
+      </div>
+
+    }
+
+
+    @if (watchlistError) {
+
+      <div class="watchlist-error">
+        {{ watchlistError }}
+      </div>
+
+    }
+
+  </div>
+
+
+  <!-- =========================
+       MY HOLDINGS
+       ========================= -->
+
+  <div class="panel">
+
+    <div class="panel-header">
+
+      <div>
+        <h2>My Holdings</h2>
+        <p>Your simulated portfolio holdings</p>
+      </div>
+
+      <a class="view-all">View all</a>
+
+    </div>
+
+
+    @if (holdingsLoading) {
+
+      <p>Loading holdings...</p>
+
+    }
+
+
+    @if (holdingsError) {
+
+      <p class="negative">
+        {{ holdingsError }}
+      </p>
+
+    }
+
+
+    @for (holding of holdings; track holding.id) {
+
+      <div class="holding">
+
+        <div class="holding-info">
+
+          <div class="stock-logo">
+            {{ holding.symbol.charAt(0) }}
+          </div>
+
+          <div>
+            <strong>{{ holding.symbol }}</strong>
+
+            <small>
+              {{ holding.companyName }}
+            </small>
+          </div>
+
+        </div>
+
+
+        <div class="holding-details">
+
+          <div>
+            <small>Qty</small>
+
+            <strong>
+              {{ holding.quantity }}
+            </strong>
+          </div>
+
+
+          <div>
+            <small>Avg. Price</small>
+
+            <strong>
+              ₹{{ holding.avgPurchasePrice | number:'1.2-2' }}
+            </strong>
+          </div>
+
+
+          <div>
+            <small>Current</small>
+
+            <strong>
+              ₹{{ holding.currentPrice | number:'1.2-2' }}
+            </strong>
+          </div>
+
+
+          <div>
+            <small>Current Value</small>
+
+            <strong>
+              ₹{{ holding.currentValue | number:'1.2-2' }}
+            </strong>
+          </div>
+
+
+          <div>
+            <small>P&L</small>
+
+            <strong
+              [class.positive]="holding.profitLoss >= 0"
+              [class.negative]="holding.profitLoss < 0">
+
+              ₹{{ holding.profitLoss | number:'1.2-2' }}
+
+            </strong>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    }
+
+  </div>
+
+</div>
+  <!-- =========================
+     TRANSACTION HISTORY
+     ========================= -->
+
+<!-- TRANSACTION HISTORY -->
+
+<div class="panel transaction-panel">
+
+  <div class="panel-header">
+    <div>
+      <h2>Transaction History</h2>
+      <p>Your simulated BUY and SELL transactions</p>
+    </div>
+  </div>
+
+  @if (transactionsLoading) {
+    <p>Loading transactions...</p>
+  }
+
+  @if (transactionsError) {
+    <p class="negative">
+      {{ transactionsError }}
+    </p>
+  }
+
+  @if (!transactionsLoading && transactions.length === 0) {
+    <p class="neutral">
+      No transactions yet.
+    </p>
+  }
+
+  @if (transactions.length > 0) {
+
+    <div class="transaction-table">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Stock</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Total</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          @for (transaction of transactions; track transaction.id) {
+
+            <tr>
+
+              <td>
+                <span
+                  class="transaction-type"
+                  [class.buy-type]="transaction.transactionType === 'BUY'"
+                  [class.sell-type]="transaction.transactionType === 'SELL'">
+
+                  {{ transaction.transactionType }}
+
+                </span>
+              </td>
+
+              <td>
+                <strong>{{ transaction.symbol }}</strong>
+              </td>
+
+              <td>
+                {{ transaction.quantity }}
+              </td>
+
+              <td>
+                ₹{{ transaction.price | number:'1.2-2' }}
+              </td>
+
+              <td>
+                ₹{{ transaction.totalAmount | number:'1.2-2' }}
+              </td>
+
+              <td>
+                {{ transaction.createdAt | date:'dd MMM yyyy, HH:mm' }}
+              </td>
+
+            </tr>
+
+          }
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  }
+  </div>
+  <!-- =========================
+     ORDER BOOK
+     ========================= -->
+
+<div class="panel order-panel">
+
+  <div class="panel-header">
+
+    <div>
+      <h2>Order Book</h2>
+      <p>Your simulated BUY and SELL orders</p>
+    </div>
+
+  </div>
+
+  @if (ordersLoading) {
+    <p>Loading orders...</p>
+  }
+
+  @if (ordersError) {
+    <p class="negative">
+      {{ ordersError }}
+    </p>
+  }
+
+  @if (!ordersLoading && orders.length === 0) {
+    <p class="neutral">
+      No orders yet.
+    </p>
+  }
+
+  @if (orders.length > 0) {
+
+    <div class="order-table">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Type</th>
+            <th>Stock</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          @for (order of orders; track order.id) {
+
+            <tr>
+
+              <td>
+                #{{ order.id }}
+              </td>
+
+              <td>
+                <span
+                  class="order-type"
+                  [class.buy-order]="order.orderType === 'BUY'"
+                  [class.sell-order]="order.orderType === 'SELL'">
+
+                  {{ order.orderType }}
+
+                </span>
+              </td>
+
+              <td>
+                <strong>{{ order.symbol }}</strong>
+              </td>
+
+              <td>
+                {{ order.quantity }}
+              </td>
+
+              <td>
+                ₹{{ order.price | number:'1.2-2' }}
+              </td>
+
+              <td>
+                ₹{{ order.totalAmount | number:'1.2-2' }}
+              </td>
+
+              <td>
+                <span class="order-status">
+                  {{ order.status }}
+                </span>
+              </td>
+
+              <td>
+                {{ order.createdAt | date:'dd MMM yyyy, HH:mm' }}
+              </td>
+
+            </tr>
+
+          }
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  }
+
+</div>
+
+</div>
